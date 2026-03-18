@@ -1,7 +1,8 @@
-from fastapi import FastAPI, HTTPException, Depends
+from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 from contextlib import asynccontextmanager
 import os
+
 
 @asynccontextmanager
 async def lifespan(app: FastAPI):
@@ -9,20 +10,22 @@ async def lifespan(app: FastAPI):
     yield
     print("Shutting down...")
 
+
 app = FastAPI(title="MVP API", version="1.0.0", lifespan=lifespan)
 
-# CORS - allow Next.js frontend
+# CORS - allow Vite frontend (localhost:5173) and deployed Vercel URL
 app.add_middleware(
     CORSMiddleware,
     allow_origins=[
-        "http://localhost:3000",
+        "http://localhost:5173",
         "https://americsoft.vercel.app",
-        os.getenv("FRONTEND_URL", "*"),
+        os.getenv("FRONTEND_URL", "http://localhost:5173"),
     ],
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
 )
+
 
 # ────────────────────────────────────────────
 # Health check
@@ -31,9 +34,11 @@ app.add_middleware(
 def root():
     return {"status": "ok", "message": "API is running"}
 
+
 @app.get("/health")
 def health():
     return {"status": "healthy"}
+
 
 # ────────────────────────────────────────────
 # Add your routes below

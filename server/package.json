@@ -1,0 +1,20 @@
+{
+  "name": "@datacompredia/server",
+  "version": "1.0.0",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "dev": "node --watch src/index.js",
+    "start": "node src/index.js",
+    "test": "node --test src/**/*.test.js",
+    "build": "node -e \"console.log('server: no transpile step')\""
+  },
+  "dependencies": {
+    "@datacompredia/shared": "*",
+    "cors": "^2.8.5",
+    "express": "^4.21.2",
+    "nanoid": "^5.1.5",
+    "socket.io": "^4.8.1",
+    "zod": "^3.24.2"
+  }
+}

@@ -1,0 +1,17 @@
+{
+  "name": "@datacompredia/shared",
+  "version": "1.0.0",
+  "private": true,
+  "type": "module",
+  "main": "./src/index.js",
+  "exports": {
+    ".": "./src/index.js"
+  },
+  "scripts": {
+    "test": "node --test ./src/**/*.test.js",
+    "build": "node -e \"console.log('shared: no build step')\""
+  },
+  "dependencies": {
+    "zod": "^3.24.2"
+  }
+}

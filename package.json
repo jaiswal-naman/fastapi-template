@@ -1,0 +1,26 @@
+{
+  "name": "datacompredia",
+  "version": "1.0.0",
+  "private": true,
+  "description": "Interactive Data Communication and Networking laboratory",
+  "workspaces": [
+    "client",
+    "server",
+    "shared"
+  ],
+  "scripts": {
+    "dev": "concurrently -n server,client -c green,cyan \"npm run dev -w server\" \"npm run dev -w client\"",
+    "dev:server": "npm run dev -w server",
+    "dev:client": "npm run dev -w client",
+    "build": "npm run build -w shared && npm run build -w server && npm run build -w client",
+    "start": "npm run start -w server",
+    "test": "npm run test -w shared && npm run test -w server",
+    "lint": "npm run lint -w client --if-present && npm run lint -w server --if-present"
+  },
+  "devDependencies": {
+    "concurrently": "^9.1.2"
+  },
+  "engines": {
+    "node": ">=20"
+  }
+}

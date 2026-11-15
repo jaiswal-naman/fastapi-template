@@ -2,6 +2,9 @@ import { create } from 'zustand';
 import { api } from '../services/api.js';
 import { getSocket, ClientEvents, ServerEvents } from '../services/socket.js';
 
+// initSocket is called from an effect; StrictMode runs effects twice in dev, which would double every listener.
+let socketBound = false;
+
 export const useLabStore = create((set, get) => ({
   connectionStatus: 'Disconnected',
   labs: [],
@@ -30,6 +33,8 @@ export const useLabStore = create((set, get) => ({
   selectLink: (selectedLinkId) => set({ selectedLinkId, selectedNodeId: null }),
 
   initSocket: () => {
+    if (socketBound) return;
+    socketBound = true;
     const socket = getSocket();
     socket.on('connect', () => set({ connectionStatus: 'Connected' }));
     socket.on('disconnect', () => set({ connectionStatus: 'Disconnected' }));

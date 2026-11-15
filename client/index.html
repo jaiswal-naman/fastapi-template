@@ -3,15 +3,24 @@
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>DataComPredia</title>
-    <link rel="preconnect" href="https://fonts.googleapis.com" />
-    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
-    <link
-      href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500&family=IBM+Plex+Sans:wght@400;500;600;700&display=swap"
-      rel="stylesheet"
-    />
+    <title>DataComPredia — Interactive Networking Laboratory</title>
+    <meta name="description" content="Explore, transmit, visualize and understand how data moves through networks — from binary signals to packet delivery." />
+    <meta name="color-scheme" content="light dark" />
+    <meta name="theme-color" content="#050911" media="(prefers-color-scheme: dark)" />
+    <meta name="theme-color" content="#f1f5fa" media="(prefers-color-scheme: light)" />
+    <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
+    <script>
+      // Apply theme before first paint to avoid a flash.
+      (function () {
+        try {
+          var p = localStorage.getItem('dcp-theme') || 'system';
+          var t = p === 'system' ? (matchMedia('(prefers-color-scheme: light)').matches ? 'light' : 'dark') : p;
+          document.documentElement.setAttribute('data-theme', t);
+        } catch (e) { document.documentElement.setAttribute('data-theme', 'dark'); }
+      })();
+    </script>
   </head>
-  <body class="bg-canvas text-ink">
+  <body>
     <div id="root"></div>
     <script type="module" src="/src/main.jsx"></script>
   </body>

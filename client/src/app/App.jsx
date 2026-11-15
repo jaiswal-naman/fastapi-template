@@ -2,6 +2,7 @@ import { useEffect } from 'react';
 import { Navigate, Route, Routes } from 'react-router-dom';
 import { AppShell } from '../components/layout/AppShell.jsx';
 import { useLabStore } from '../store/labStore.js';
+import { useThemeBootstrap } from '../lib/theme.js';
 import { OverviewPage } from '../features/dashboard/OverviewPage.jsx';
 import { CreateLabPage } from '../features/topology/CreateLabPage.jsx';
 import { NetworkPlaygroundPage } from '../features/topology/NetworkPlaygroundPage.jsx';
@@ -16,6 +17,7 @@ import { SettingsPage } from '../features/settings/SettingsPage.jsx';
 
 export default function App() {
   const initSocket = useLabStore((s) => s.initSocket);
+  useThemeBootstrap();
 
   useEffect(() => {
     initSocket();

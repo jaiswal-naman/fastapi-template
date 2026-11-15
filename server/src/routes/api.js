@@ -3,6 +3,7 @@ import { labCreateSchema, topologySchema } from '@datacompredia/shared';
 import { labStore } from '../db/store.js';
 import { listTemplates } from '../modules/topology/templates.js';
 import { DEMO_SCENARIOS } from '../modules/topology/scenarios.js';
+import { getExplorer } from '../modules/explorer/index.js';
 import { encode } from '../modules/signal-encoding/encoders.js';
 import {
   nyquistCapacity,
@@ -24,6 +25,12 @@ export function createApiRouter() {
 
   router.get('/scenarios', (_req, res) => {
     res.json({ scenarios: DEMO_SCENARIOS });
+  });
+
+  // Guided lessons for the Explorer home screen. Deterministic, so browsers and the CDN may cache it.
+  router.get('/explorer', (_req, res) => {
+    res.set('Cache-Control', 'public, max-age=300');
+    res.json(getExplorer());
   });
 
   router.get('/labs', async (_req, res, next) => {

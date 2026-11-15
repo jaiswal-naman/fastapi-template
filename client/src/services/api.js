@@ -28,6 +28,7 @@ export const api = {
     request(`/labs/${labId}/topology`, { method: 'PUT', body: JSON.stringify(topology) }),
   templates: () => request('/topologies/templates'),
   scenarios: () => request('/scenarios'),
+  explorer: () => request('/explorer'),
   listExperiments: () => request('/experiments'),
   listLabExperiments: (labId) => request(`/labs/${labId}/experiments`),
   getExperiment: (id) => request(`/experiments/${id}`),

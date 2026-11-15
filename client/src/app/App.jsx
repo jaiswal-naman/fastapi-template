@@ -3,6 +3,7 @@ import { Navigate, Route, Routes } from 'react-router-dom';
 import { AppShell } from '../components/layout/AppShell.jsx';
 import { useLabStore } from '../store/labStore.js';
 import { useThemeBootstrap } from '../lib/theme.js';
+import { ExplorerPage } from '../features/explorer/ExplorerPage.jsx';
 import { OverviewPage } from '../features/dashboard/OverviewPage.jsx';
 import { CreateLabPage } from '../features/topology/CreateLabPage.jsx';
 import { NetworkPlaygroundPage } from '../features/topology/NetworkPlaygroundPage.jsx';
@@ -25,8 +26,10 @@ export default function App() {
 
   return (
     <Routes>
+      {/* Home is the guided Explorer; the hands-on lab tools live under the sidebar shell. */}
+      <Route index element={<ExplorerPage />} />
       <Route element={<AppShell />}>
-        <Route index element={<OverviewPage />} />
+        <Route path="lab" element={<OverviewPage />} />
         <Route path="create-lab" element={<CreateLabPage />} />
         <Route path="network" element={<NetworkPlaygroundPage />} />
         <Route path="packets" element={<PacketPlaygroundPage />} />

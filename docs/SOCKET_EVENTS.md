@@ -2,6 +2,8 @@
 
 Rooms: `lab:<labId>`. Client must `lab:join` before receiving lab events.
 
+Path: `/api/socket.io`, WebSocket transport only (required on Vercel). After any reconnect the client sends `lab:join` again for the open lab, and `lab:joined` restores its state.
+
 ## Client → server
 
 | Event | Payload |

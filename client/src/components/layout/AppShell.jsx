@@ -7,7 +7,7 @@ import { ThemeQuickToggle } from '../ui/ThemeToggle.jsx';
 import { Toaster } from '../ui/Toaster.jsx';
 import { CommandPalette, NAV_ITEMS } from '../ui/CommandPalette.jsx';
 
-const GROUPS = ['Workspace', 'Build', 'Analyze', 'Library'];
+const GROUPS = ['Learn', 'Workspace', 'Build', 'Analyze', 'Library'];
 
 const TITLES = {
   '/create-lab': 'Create Lab',
@@ -36,7 +36,7 @@ export function AppShell() {
 
   const connected = connectionStatus === 'Connected';
   const section = location.pathname.startsWith('/experiments/') ? 'Experiment Report' : TITLES[location.pathname] || 'DataComPredia';
-  const isOverview = location.pathname === '/';
+  const isOverview = location.pathname === '/lab';
 
   useEffect(() => { setOpen(false); }, [location.pathname]);
   useEffect(() => {
@@ -147,7 +147,7 @@ export function AppShell() {
               <Menu size={16} />
             </button>
             <nav aria-label="Breadcrumb" className="flex min-w-0 items-center gap-1.5 text-[13px]">
-              <Link to="/" className="hidden text-muted transition hover:text-ink sm:block">Lab</Link>
+              <Link to="/lab" className="hidden text-muted transition hover:text-ink sm:block">Lab</Link>
               <ChevronRight size={14} className="hidden text-faint sm:block" />
               <h1 className="truncate font-display text-[15px] font-semibold tracking-tight text-ink">
                 {isOverview ? 'Overview' : section}

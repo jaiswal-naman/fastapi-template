@@ -1,0 +1,124 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+:root {
+  --primary-emerald: #10b981;
+  --deep-emerald: #047857;
+  --bright-accent: #34d399;
+  --main-background: #071a16;
+  --surface: #0d2620;
+  --elevated-surface: #12352b;
+  --main-text: #f0fdf4;
+  --secondary-text: #a7c4b8;
+  --border: #285344;
+  --warning: #fbbf24;
+  --error: #fb7185;
+  --info: #60a5fa;
+  --radius: 10px;
+}
+
+html,
+body,
+#root {
+  height: 100%;
+}
+
+body {
+  margin: 0;
+  color: var(--main-text);
+  font-family: 'IBM Plex Sans', ui-sans-serif, system-ui, sans-serif;
+  background:
+    radial-gradient(1200px 600px at 10% -10%, rgba(16, 185, 129, 0.12), transparent 55%),
+    radial-gradient(900px 500px at 100% 0%, rgba(6, 78, 59, 0.35), transparent 50%),
+    linear-gradient(180deg, #0a1f1a 0%, #071a16 42%, #04110e 100%);
+  background-attachment: fixed;
+}
+
+::selection {
+  background: rgba(16, 185, 129, 0.35);
+  color: #f0fdf4;
+}
+
+.tabular {
+  font-variant-numeric: tabular-nums;
+}
+
+@layer components {
+  .panel {
+    @apply rounded-[10px] border border-line/90 bg-surface/90 shadow-panel backdrop-blur-sm;
+  }
+
+  .panel-lg {
+    @apply rounded-xl border border-line/90 bg-surface/90 shadow-panel backdrop-blur-sm;
+  }
+
+  .btn {
+    @apply inline-flex items-center justify-center gap-2 rounded-md px-3.5 py-2 text-sm font-medium transition duration-150 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-emerald disabled:cursor-not-allowed disabled:opacity-45;
+  }
+
+  .btn-primary {
+    @apply btn bg-emerald text-[#042f24] hover:bg-emerald-bright active:bg-emerald-deep active:text-ink;
+  }
+
+  .btn-secondary {
+    @apply btn border border-line bg-elevated/80 text-ink hover:border-emerald/60 hover:bg-elevated;
+  }
+
+  .btn-danger {
+    @apply btn border border-danger/35 bg-elevated text-danger hover:bg-danger/10;
+  }
+
+  .field {
+    @apply w-full rounded-md border border-line bg-canvas/80 px-3 py-2.5 text-sm text-ink placeholder:text-muted/80 focus:border-emerald focus:outline-none focus:ring-1 focus:ring-emerald/40;
+  }
+
+  .label {
+    @apply mb-1.5 block text-[11px] font-semibold uppercase tracking-[0.12em] text-muted;
+  }
+
+  .status-pill {
+    @apply inline-flex items-center gap-1.5 rounded-md border border-line bg-canvas/50 px-2 py-0.5 text-[11px] text-muted;
+  }
+
+  .section-title {
+    @apply text-sm font-semibold tracking-tight text-ink;
+  }
+
+  .metric-tile {
+    @apply rounded-[10px] border border-line/90 bg-gradient-to-b from-elevated/70 to-surface/90 p-4;
+  }
+
+  .empty-state {
+    @apply rounded-lg border border-dashed border-line bg-canvas/40 px-4 py-5 text-sm leading-relaxed text-muted;
+  }
+
+  .nav-link {
+    @apply flex items-center gap-2.5 rounded-lg px-3 py-2.5 text-sm transition;
+  }
+}
+
+/* React Flow dark theme fit */
+.react-flow__controls-button {
+  background: #12352b !important;
+  border-bottom-color: #285344 !important;
+  fill: #f0fdf4 !important;
+}
+
+.react-flow__minimap {
+  background: #0d2620 !important;
+}
+
+.react-flow__attribution {
+  display: none !important;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+  }
+}

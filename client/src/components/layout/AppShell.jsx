@@ -148,7 +148,7 @@ export function AppShell() {
             </button>
             <nav aria-label="Breadcrumb" className="flex min-w-0 items-center gap-1.5 text-[13px]">
               <Link to="/" className="hidden text-muted transition hover:text-ink sm:block">Lab</Link>
-              {!isOverview ? <ChevronRight size={14} className="hidden text-faint sm:block" /> : null}
+              <ChevronRight size={14} className="hidden text-faint sm:block" />
               <h1 className="truncate font-display text-[15px] font-semibold tracking-tight text-ink">
                 {isOverview ? 'Overview' : section}
               </h1>

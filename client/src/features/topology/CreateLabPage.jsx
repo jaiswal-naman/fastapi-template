@@ -1,67 +1,19 @@
 import { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { Network } from 'lucide-react';
+import { ArrowRight, Check, Loader2, Network, Sparkles } from 'lucide-react';
 import { api } from '../../services/api.js';
 import { useLabStore } from '../../store/labStore.js';
 import { PageHeader } from '../../components/ui/PageHeader.jsx';
+import { Badge } from '../../components/ui/Panel.jsx';
+import { TopologyGlyph } from './TopologyGlyph.jsx';
 
 const PREVIEWS = {
-  star: { title: 'Star', hint: 'Hub-and-spoke switch fabric' },
-  bus: { title: 'Bus', hint: 'Linear multi-hop delay chain' },
-  ring: { title: 'Ring', hint: 'Circular switch path' },
-  mesh: { title: 'Mesh', hint: 'Alternate router routes' },
-  blank: { title: 'Blank', hint: 'Empty custom canvas' },
+  star: { title: 'Star', hint: 'Hub-and-spoke switch fabric', learn: 'Single point of failure, switching, fan-out', tags: ['Switch', 'PC × 3', 'Server'] },
+  bus: { title: 'Bus', hint: 'Linear multi-hop delay chain', learn: 'Per-hop delay accumulation, queueing', tags: ['Chain', 'Multi-hop'] },
+  ring: { title: 'Ring', hint: 'Circular switch path', learn: 'Alternate directions, redundancy', tags: ['Switch × 4', 'Endpoints'] },
+  mesh: { title: 'Mesh', hint: 'Alternate router routes', learn: 'Routing around failed links', tags: ['Router × 4', 'Redundant'] },
+  blank: { title: 'Blank', hint: 'Empty custom canvas', learn: 'Design your own topology from scratch', tags: ['Empty'] },
 };
-
-function MiniPreview({ id }) {
-  if (id === 'star') {
-    return (
-      <svg viewBox="0 0 120 72" className="h-16 w-full text-emerald-bright" aria-hidden>
-        <circle cx="60" cy="36" r="7" fill="currentColor" />
-        <circle cx="24" cy="18" r="4" fill="#A7C4B8" />
-        <circle cx="96" cy="18" r="4" fill="#A7C4B8" />
-        <circle cx="24" cy="54" r="4" fill="#A7C4B8" />
-        <circle cx="96" cy="54" r="4" fill="#A7C4B8" />
-        <path d="M60 36L24 18M60 36L96 18M60 36L24 54M60 36L96 54" stroke="#285344" strokeWidth="1.5" />
-      </svg>
-    );
-  }
-  if (id === 'bus') {
-    return (
-      <svg viewBox="0 0 120 72" className="h-16 w-full" aria-hidden>
-        <path d="M12 36H108" stroke="#285344" strokeWidth="2" />
-        {[20, 44, 68, 92].map((x) => (
-          <circle key={x} cx={x} cy="36" r="5" fill="#34D399" />
-        ))}
-      </svg>
-    );
-  }
-  if (id === 'ring') {
-    return (
-      <svg viewBox="0 0 120 72" className="h-16 w-full" aria-hidden>
-        <circle cx="60" cy="36" r="22" fill="none" stroke="#285344" strokeWidth="2" />
-        <circle cx="60" cy="14" r="4" fill="#34D399" />
-        <circle cx="82" cy="36" r="4" fill="#34D399" />
-        <circle cx="60" cy="58" r="4" fill="#34D399" />
-        <circle cx="38" cy="36" r="4" fill="#34D399" />
-      </svg>
-    );
-  }
-  if (id === 'mesh') {
-    return (
-      <svg viewBox="0 0 120 72" className="h-16 w-full" aria-hidden>
-        <path d="M30 20L90 20L90 52L30 52Z M30 20L90 52M90 20L30 52" stroke="#285344" strokeWidth="1.5" fill="none" />
-        <circle cx="30" cy="20" r="4" fill="#60A5FA" />
-        <circle cx="90" cy="20" r="4" fill="#60A5FA" />
-        <circle cx="90" cy="52" r="4" fill="#60A5FA" />
-        <circle cx="30" cy="52" r="4" fill="#34D399" />
-      </svg>
-    );
-  }
-  return (
-    <div className="flex h-16 items-center justify-center text-[11px] text-muted">Empty canvas</div>
-  );
-}
 
 export function CreateLabPage() {
   const navigate = useNavigate();
@@ -99,9 +51,11 @@ export function CreateLabPage() {
   const cards = templates.length
     ? templates
     : Object.entries(PREVIEWS).map(([id, meta]) => ({ id, name: meta.title, description: meta.hint }));
+  const selected = cards.find((c) => c.id === template) || cards[0];
+  const meta = PREVIEWS[selected?.id] || {};
 
   return (
-    <form onSubmit={onCreate} className="mx-auto max-w-4xl space-y-5">
+    <form onSubmit={onCreate} className="space-y-5">
       <PageHeader
         eyebrow="Create lab"
         title="Choose a starter topology"
@@ -109,59 +63,120 @@ export function CreateLabPage() {
         icon={Network}
       />
 
-      <div className="panel-lg p-5 md:p-6">
-        <label className="label" htmlFor="lab-name">Lab name</label>
-        <input
-          id="lab-name"
-          className="field max-w-xl"
-          value={name}
-          onChange={(e) => setName(e.target.value)}
-          maxLength={80}
-          required
-        />
-
-        <fieldset className="mt-6">
-          <legend className="section-title">Starting point</legend>
-          <div className="mt-3 grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
-            {cards.map((t) => {
-              const selected = template === t.id;
-              return (
-                <label
-                  key={t.id}
-                  className={`cursor-pointer rounded-xl border p-4 transition ${
-                    selected
-                      ? 'border-emerald bg-emerald/10 ring-1 ring-emerald/40'
-                      : 'border-line bg-canvas/40 hover:border-emerald/45'
-                  }`}
-                >
-                  <input
-                    type="radio"
-                    name="template"
-                    className="sr-only"
-                    checked={selected}
-                    onChange={() => setTemplate(t.id)}
-                  />
-                  <div className="font-medium capitalize text-ink">{t.name}</div>
-                  <p className="mt-1 text-xs text-muted">{t.description || PREVIEWS[t.id]?.hint}</p>
-                  <div className="mt-3 rounded-lg border border-line bg-surface/80 px-2 py-1">
-                    <MiniPreview id={t.id} />
-                  </div>
-                </label>
-              );
-            })}
+      <div className="grid items-start gap-5 lg:grid-cols-[1fr_340px]">
+        <div className="panel-lg p-5 md:p-6">
+          <div className="flex items-baseline justify-between gap-3">
+            <h3 className="section-title">1 · Starting point</h3>
+            <span className="font-mono text-[11px] text-faint">{cards.length} templates</span>
           </div>
-        </fieldset>
 
-        {error ? <p className="mt-4 text-sm text-danger">{error}</p> : null}
-
-        <div className="mt-6 flex justify-end gap-2">
-          <button type="button" className="btn-secondary" onClick={() => navigate(-1)}>
-            Cancel
-          </button>
-          <button type="submit" className="btn-primary" disabled={busy}>
-            {busy ? 'Creating…' : 'Create Lab'}
-          </button>
+          <fieldset className="mt-4">
+            <legend className="sr-only">Starting topology template</legend>
+            <div className="stagger grid gap-3 sm:grid-cols-2 xl:grid-cols-3">
+              {cards.map((t) => {
+                const isSel = template === t.id;
+                return (
+                  <label
+                    key={t.id}
+                    className={`group relative cursor-pointer overflow-hidden rounded-xl border p-3.5 transition duration-200 focus-within:outline focus-within:outline-2 focus-within:outline-offset-2 focus-within:outline-emerald ${
+                      isSel
+                        ? 'border-emerald bg-emerald/[0.07] shadow-[0_0_0_1px_rgb(var(--c-brand)/0.5),0_10px_30px_-14px_rgb(var(--c-brand)/0.5)]'
+                        : 'border-line bg-canvas/30 hover:-translate-y-0.5 hover:border-emerald/45 hover:bg-raised/40'
+                    }`}
+                  >
+                    <input
+                      type="radio"
+                      name="template"
+                      className="sr-only"
+                      checked={isSel}
+                      onChange={() => setTemplate(t.id)}
+                    />
+                    <span
+                      className={`absolute right-2.5 top-2.5 grid h-5 w-5 place-items-center rounded-full transition ${
+                        isSel ? 'scale-100 bg-emerald text-on-brand' : 'scale-75 bg-raised text-transparent opacity-0 group-hover:opacity-60'
+                      }`}
+                      aria-hidden
+                    >
+                      <Check size={12} strokeWidth={3} />
+                    </span>
+                    <div className="grid h-[88px] place-items-center rounded-lg border border-line/80 bg-surface/80 px-3">
+                      <TopologyGlyph id={t.id} className="h-full w-full max-w-[150px]" />
+                    </div>
+                    <div className="mt-3 flex items-center gap-2">
+                      <span className="font-display text-[15px] font-semibold capitalize text-ink">{PREVIEWS[t.id]?.title || t.name}</span>
+                    </div>
+                    <p className="mt-0.5 text-[12px] leading-snug text-muted">{t.description || PREVIEWS[t.id]?.hint}</p>
+                  </label>
+                );
+              })}
+            </div>
+          </fieldset>
         </div>
+
+        {/* summary / submit rail */}
+        <aside className="panel-lg bracket sticky top-0 space-y-5 p-5 md:p-6">
+          <div>
+            <h3 className="section-title">2 · Name it</h3>
+            <label className="label mt-3" htmlFor="lab-name">Lab name</label>
+            <input
+              id="lab-name"
+              className="field"
+              value={name}
+              onChange={(e) => setName(e.target.value)}
+              maxLength={80}
+              required
+              placeholder="e.g. Campus backbone"
+            />
+            <div className="mt-1.5 text-right font-mono text-[10.5px] text-faint">{name.length}/80</div>
+          </div>
+
+          <div className="rounded-xl border border-line bg-canvas/40 p-4">
+            <div className="flex items-center gap-2 font-mono text-[10.5px] uppercase tracking-[0.16em] text-faint">
+              <Sparkles size={12} className="text-emerald-bright" /> Selected
+            </div>
+            <div className="mt-3 grid h-24 place-items-center rounded-lg border border-line/70 bg-surface/80">
+              <TopologyGlyph id={selected?.id} className="h-full w-full max-w-[170px]" />
+            </div>
+            <div className="font-display mt-3 text-base font-semibold capitalize text-ink">{meta.title || selected?.name}</div>
+            <p className="mt-1 text-[12.5px] leading-relaxed text-muted">{selected?.description}</p>
+            {meta.learn ? (
+              <p className="mt-2 text-[12px] leading-snug text-muted">
+                <span className="font-semibold text-ink">You'll explore: </span>
+                {meta.learn}
+              </p>
+            ) : null}
+            {meta.tags ? (
+              <div className="mt-3 flex flex-wrap gap-1.5">
+                {meta.tags.map((t) => (
+                  <Badge key={t}>{t}</Badge>
+                ))}
+              </div>
+            ) : null}
+          </div>
+
+          {error ? (
+            <p role="alert" className="rounded-lg border border-danger/40 bg-danger/10 px-3 py-2 text-[13px] text-danger">
+              {error}
+            </p>
+          ) : null}
+
+          <div className="flex gap-2">
+            <button type="button" className="btn-secondary" onClick={() => navigate(-1)}>
+              Cancel
+            </button>
+            <button type="submit" className="btn-primary flex-1" disabled={busy}>
+              {busy ? (
+                <>
+                  <Loader2 size={15} className="animate-spin" /> Creating…
+                </>
+              ) : (
+                <>
+                  Create Lab <ArrowRight size={15} />
+                </>
+              )}
+            </button>
+          </div>
+        </aside>
       </div>
     </form>
   );

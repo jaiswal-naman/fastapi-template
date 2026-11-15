@@ -65,7 +65,7 @@ export function createApiRouter() {
     try {
       const lab = await labStore.getLab(req.params.labId);
       if (!lab) return res.status(404).json({ code: 'NOT_FOUND', message: 'Lab not found.' });
-      const live = labStore.getLive(lab.id);
+      const live = await labStore.getLive(lab.id);
       res.json({
         lab,
         live: {
@@ -191,7 +191,7 @@ export function createApiRouter() {
     try {
       const lab = await labStore.getLab(req.params.labId);
       if (!lab) return res.status(404).json({ code: 'NOT_FOUND', message: 'Lab not found.' });
-      const live = labStore.getLive(lab.id);
+      const live = await labStore.getLive(lab.id);
       res.json({
         current: live.metrics.getSnapshot(),
         history: live.metrics.getHistory(),

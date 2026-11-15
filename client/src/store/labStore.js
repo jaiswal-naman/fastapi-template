@@ -36,7 +36,20 @@ export const useLabStore = create((set, get) => ({
     if (socketBound) return;
     socketBound = true;
     const socket = getSocket();
-    socket.on('connect', () => set({ connectionStatus: 'Connected' }));
+    socket.on('connect', () => {
+      set({ connectionStatus: 'Connected' });
+      // Vercel closes WebSockets every few minutes; rejoin the open lab after each reconnect.
+      const { currentLab } = get();
+      if (currentLab) socket.emit(ClientEvents.LAB_JOIN, { labId: currentLab.id });
+    });
+
+    socket.on(ServerEvents.LAB_JOINED, ({ state }) => {
+      if (!state?.lab || state.lab.id !== get().currentLab?.id) return;
+      const patch = { metrics: state.metrics, simulationStatus: state.simulationStatus };
+      if (!get().unsaved) Object.assign(patch, { currentLab: state.lab, topology: state.lab.topology });
+      if (state.lastPacket) patch.packet = state.lastPacket;
+      set(patch);
+    });
     socket.on('disconnect', () => set({ connectionStatus: 'Disconnected' }));
     socket.on('connection:status', (p) => set({ connectionStatus: p.status || 'Connected' }));
 

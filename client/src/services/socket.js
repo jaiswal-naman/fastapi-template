@@ -8,8 +8,9 @@ let socket;
 export function getSocket() {
   if (!socket) {
     socket = io(SOCKET_URL, {
-      path: '/socket.io',
-      transports: ['websocket', 'polling'],
+      // Vercel serves Socket.IO from the API function and only supports the WebSocket transport.
+      path: '/api/socket.io',
+      transports: ['websocket'],
       autoConnect: true,
     });
   }

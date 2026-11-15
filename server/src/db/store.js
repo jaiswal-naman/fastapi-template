@@ -1,62 +1,57 @@
-import fs from 'node:fs/promises';
-import path from 'node:path';
 import { nanoid } from 'nanoid';
-import { config } from '../config.js';
+import { kv } from './kv.js';
 import { getTemplateTopology } from '../modules/topology/templates.js';
 import { validateTopology } from '../modules/topology/validate.js';
 import { createMetricsStore } from '../modules/metrics/metrics.js';
 
-const labsFile = () => path.join(config.dataDir, 'labs.json');
-const experimentsFile = () => path.join(config.dataDir, 'experiments.json');
-
-async function ensureDataDir() {
-  await fs.mkdir(config.dataDir, { recursive: true });
-  try {
-    await fs.access(labsFile());
-  } catch {
-    await fs.writeFile(labsFile(), '[]', 'utf8');
-  }
-  try {
-    await fs.access(experimentsFile());
-  } catch {
-    await fs.writeFile(experimentsFile(), '[]', 'utf8');
-  }
+async function readList(key) {
+  return (await kv.get(key)) || [];
 }
 
-async function readJson(file) {
-  await ensureDataDir();
-  const raw = await fs.readFile(file, 'utf8');
-  return JSON.parse(raw);
-}
+const writeList = (key, list) => kv.set(key, list);
 
-async function writeJson(file, data) {
-  await ensureDataDir();
-  await fs.writeFile(file, JSON.stringify(data, null, 2), 'utf8');
-}
-
-/** In-memory live simulation state keyed by labId */
+/**
+ * Live simulation state keyed by labId. Kept in memory for the running instance and
+ * saved to the store so a reconnect on another instance (Vercel) still sees it.
+ */
 const live = new Map();
 
-function getLive(labId) {
+function freshLive(saved = null) {
+  return {
+    metrics: createMetricsStore(saved?.metrics),
+    lastPacket: saved?.lastPacket ?? null,
+    lastEvents: saved?.lastEvents ?? [],
+    simulationStatus: saved?.simulationStatus ?? 'idle',
+    paused: false,
+  };
+}
+
+async function getLive(labId) {
   if (!live.has(labId)) {
-    live.set(labId, {
-      metrics: createMetricsStore(),
-      lastPacket: null,
-      lastEvents: [],
-      simulationStatus: 'idle',
-      paused: false,
-    });
+    const saved = await kv.get(`live-${labId}`);
+    if (!live.has(labId)) live.set(labId, freshLive(saved));
   }
   return live.get(labId);
 }
 
+async function saveLive(labId) {
+  const state = live.get(labId);
+  if (!state) return;
+  await kv.set(`live-${labId}`, {
+    metrics: state.metrics.toJSON(),
+    lastPacket: state.lastPacket,
+    lastEvents: state.lastEvents,
+    simulationStatus: state.simulationStatus,
+  });
+}
+
 export const labStore = {
   async listLabs() {
-    return readJson(labsFile());
+    return readList('labs');
   },
 
   async getLab(labId) {
-    const labs = await readJson(labsFile());
+    const labs = await readList('labs');
     return labs.find((l) => l.id === labId) || null;
   },
 
@@ -71,15 +66,14 @@ export const labStore = {
       updatedAt: new Date().toISOString(),
       sessionLabel: 'Local demo session',
     };
-    const labs = await readJson(labsFile());
+    const labs = await readList('labs');
     labs.unshift(lab);
-    await writeJson(labsFile(), labs);
-    getLive(lab.id);
+    await writeList('labs', labs);
     return lab;
   },
 
   async updateLabMeta(labId, patch) {
-    const labs = await readJson(labsFile());
+    const labs = await readList('labs');
     const idx = labs.findIndex((l) => l.id === labId);
     if (idx < 0) return null;
     labs[idx] = {
@@ -87,7 +81,7 @@ export const labStore = {
       ...patch,
       updatedAt: new Date().toISOString(),
     };
-    await writeJson(labsFile(), labs);
+    await writeList('labs', labs);
     return labs[idx];
   },
 
@@ -95,24 +89,24 @@ export const labStore = {
     const validated = validateTopology(topologyInput);
     if (!validated.ok) return { ok: false, message: validated.message };
 
-    const labs = await readJson(labsFile());
+    const labs = await readList('labs');
     const idx = labs.findIndex((l) => l.id === labId);
     if (idx < 0) return { ok: false, message: 'Lab not found.' };
 
     const nextVersion = (labs[idx].topology?.version || 0) + 1;
     labs[idx].topology = { ...validated.topology, version: nextVersion };
     labs[idx].updatedAt = new Date().toISOString();
-    await writeJson(labsFile(), labs);
+    await writeList('labs', labs);
     return { ok: true, lab: labs[idx] };
   },
 
   async listExperiments(labId) {
-    const all = await readJson(experimentsFile());
+    const all = await readList('experiments');
     return all.filter((e) => e.labId === labId);
   },
 
   async getExperiment(experimentId) {
-    const all = await readJson(experimentsFile());
+    const all = await readList('experiments');
     return all.find((e) => e.id === experimentId) || null;
   },
 
@@ -134,20 +128,17 @@ export const labStore = {
       packet: summary.packet || null,
       events: summary.events || [],
     };
-    const all = await readJson(experimentsFile());
+    const all = await readList('experiments');
     all.unshift(experiment);
-    await writeJson(experimentsFile(), all);
+    await writeList('experiments', all);
     return experiment;
   },
 
   getLive,
-  resetLive(labId) {
-    const state = getLive(labId);
-    state.metrics.reset();
-    state.lastPacket = null;
-    state.lastEvents = [];
-    state.simulationStatus = 'idle';
-    state.paused = false;
-    return state;
+  saveLive,
+  async resetLive(labId) {
+    live.set(labId, freshLive());
+    await saveLive(labId);
+    return live.get(labId);
   },
 };

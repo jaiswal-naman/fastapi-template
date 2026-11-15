@@ -16,7 +16,7 @@ function roomName(labId) {
  * Map engine timeline events to Socket.IO broadcast events with wall-clock pacing.
  */
 async function emitSimulation(io, labId, result, speed = 1) {
-  const live = labStore.getLive(labId);
+  const live = await labStore.getLive(labId);
   live.lastPacket = result.packet;
   live.lastEvents = result.events;
   live.simulationStatus = SimulationStatuses.RUNNING;
@@ -119,6 +119,7 @@ async function emitSimulation(io, labId, result, speed = 1) {
     result.packet.status === 'delivered'
       ? SimulationStatuses.COMPLETED
       : SimulationStatuses.FAILED;
+  await labStore.saveLive(labId);
 
   io.to(roomName(labId)).emit(ServerEvents.SIMULATION_STATE, {
     labId,
@@ -147,7 +148,7 @@ export function registerLabSockets(io) {
           return;
         }
         socket.join(roomName(labId));
-        const live = labStore.getLive(labId);
+        const live = await labStore.getLive(labId);
         const state = {
           lab,
           metrics: live.metrics.getSnapshot(),
@@ -265,7 +266,7 @@ export function registerLabSockets(io) {
           return;
         }
 
-        const live = labStore.getLive(lab.id);
+        const live = await labStore.getLive(lab.id);
         if (live.simulationStatus === SimulationStatuses.RUNNING && !live.paused) {
           const error = { code: 'BUSY', message: 'A simulation is already running for this lab.' };
           if (typeof ack === 'function') ack(error);
@@ -295,8 +296,8 @@ export function registerLabSockets(io) {
       }
     });
 
-    socket.on(ClientEvents.SIMULATION_PAUSE, (payload) => {
-      const live = labStore.getLive(payload?.labId);
+    socket.on(ClientEvents.SIMULATION_PAUSE, async (payload) => {
+      const live = await labStore.getLive(payload?.labId);
       live.paused = true;
       io.to(roomName(payload.labId)).emit(ServerEvents.SIMULATION_STATE, {
         labId: payload.labId,
@@ -304,8 +305,8 @@ export function registerLabSockets(io) {
       });
     });
 
-    socket.on(ClientEvents.SIMULATION_RESUME, (payload) => {
-      const live = labStore.getLive(payload?.labId);
+    socket.on(ClientEvents.SIMULATION_RESUME, async (payload) => {
+      const live = await labStore.getLive(payload?.labId);
       live.paused = false;
       io.to(roomName(payload.labId)).emit(ServerEvents.SIMULATION_STATE, {
         labId: payload.labId,
@@ -313,8 +314,8 @@ export function registerLabSockets(io) {
       });
     });
 
-    socket.on(ClientEvents.SIMULATION_RESET, (payload) => {
-      const state = labStore.resetLive(payload?.labId);
+    socket.on(ClientEvents.SIMULATION_RESET, async (payload) => {
+      const state = await labStore.resetLive(payload?.labId);
       io.to(roomName(payload.labId)).emit(ServerEvents.SIMULATION_STATE, {
         labId: payload.labId,
         status: state.simulationStatus,

@@ -1,16 +1,16 @@
 /**
  * Rolling metrics aggregator driven only by simulation results.
  */
-export function createMetricsStore() {
-  const samples = [];
-  let totals = {
+export function createMetricsStore(saved = null) {
+  const samples = saved?.samples ? [...saved.samples] : [];
+  let totals = saved?.totals ? { ...saved.totals } : {
     sent: 0,
     delivered: 0,
     dropped: 0,
     retransmits: 0,
     payloadBitsDelivered: 0,
   };
-  const latencies = [];
+  const latencies = saved?.latencies ? [...saved.latencies] : [];
 
   function applyDelta(delta, timestamp = Date.now()) {
     totals.sent += delta.sent || 0;
@@ -85,7 +85,12 @@ export function createMetricsStore() {
     return [...samples];
   }
 
-  return { applyDelta, reset, getSnapshot, getHistory };
+  /** Plain data for saving; pass it back to createMetricsStore to restore. */
+  function toJSON() {
+    return { samples, totals, latencies };
+  }
+
+  return { applyDelta, reset, getSnapshot, getHistory, toJSON };
 }
 
 /** Mean absolute difference between consecutive latencies */

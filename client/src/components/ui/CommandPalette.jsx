@@ -1,14 +1,15 @@
 import { useEffect, useMemo, useRef, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import {
-  Activity, BookOpen, CornerDownLeft, FlaskConical, FolderKanban, Gauge, LayoutDashboard,
+  Activity, BookOpen, Compass, CornerDownLeft, FlaskConical, FolderKanban, Gauge, LayoutDashboard,
   Moon, Network, Plus, Radio, Search, Settings, Signal, Sun,
 } from 'lucide-react';
 import { useLabStore } from '../../store/labStore.js';
 import { useTheme } from '../../lib/theme.js';
 
 export const NAV_ITEMS = [
-  { to: '/', label: 'Overview', icon: LayoutDashboard, group: 'Workspace', hint: 'Dashboard and recent labs' },
+  { to: '/', label: 'Explorer', icon: Compass, group: 'Learn', hint: 'Guided lessons, step by step' },
+  { to: '/lab', label: 'Lab overview', icon: LayoutDashboard, group: 'Workspace', hint: 'Dashboard and recent labs' },
   { to: '/network', label: 'Network Playground', icon: Network, group: 'Build', hint: 'Edit topology in 2D / 3D' },
   { to: '/packets', label: 'Packet Playground', icon: Activity, group: 'Build', hint: 'Transmit and trace packets' },
   { to: '/observatory', label: 'Performance Observatory', icon: Gauge, group: 'Analyze', hint: 'Throughput, latency, loss' },
